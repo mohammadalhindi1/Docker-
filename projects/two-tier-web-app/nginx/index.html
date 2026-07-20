@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Docker Two-Tier App</title></head>
+<body>
+  <h1>Docker Two-Tier Web Application</h1>
+  <p>Nginx serves this page and proxies <code>/api/</code> to the backend container.</p>
+  <button id="load">Call backend</button>
+  <pre id="output">Waiting...</pre>
+  <script>
+    document.getElementById("load").onclick = async () => {
+      const response = await fetch("/api/");
+      document.getElementById("output").textContent =
+        JSON.stringify(await response.json(), null, 2);
+    };
+  </script>
+</body>
+</html>
