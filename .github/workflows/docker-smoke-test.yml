@@ -27,8 +27,7 @@ jobs:
         run: docker build -t docker-learning-ci labs/03-custom-image
 
       - name: Run the container
-        run: |
-          docker run -d             --name docker-learning-test             -p 8000:8000             -e APP_MESSAGE="CI test passed"             docker-learning-ci
+        run: docker run -d --name docker-learning-test -p 8000:8000 -e APP_MESSAGE="CI test passed" docker-learning-ci
 
       - name: Test the running application
         run: |
@@ -45,8 +44,8 @@ jobs:
 
       - name: Show container logs on failure
         if: failure()
-        run: docker logs docker-learning-test
+        run: docker logs docker-learning-test || true
 
       - name: Remove test container
         if: always()
-        run: docker rm --force docker-learning-test
+        run: docker rm --force docker-learning-test || true
