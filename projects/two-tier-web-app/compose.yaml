@@ -1,0 +1,32 @@
+services:
+  frontend:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/index.html:/usr/share/nginx/html/index.html:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - frontend-net
+      - backend-net
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      APP_MESSAGE: "Response from the isolated backend service"
+    networks:
+      - backend-net
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  frontend-net:
+  backend-net:
+    internal: true
