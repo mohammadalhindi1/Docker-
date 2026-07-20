@@ -1,96 +1,167 @@
 # Docker: From Zero to Deployment
 
-A practical, beginner-friendly Docker learning repository that explains the core ideas, demonstrates the essential commands, and turns theory into working containers.
+A practical Docker reference covering the concepts, commands, storage, networking, image builds, Compose, security, troubleshooting, and reproducible labs required to move from first container to a small multi-service application.
 
-## Why this repository exists
+## What is Docker?
 
-Docker becomes useful only when you understand the complete flow:
+Docker is a platform for building, distributing, and running applications in isolated environments called **containers**. It packages application code, runtime dependencies, and configuration into portable **images**.
 
-**source code -> Dockerfile -> image -> container -> registry -> deployment**
+Docker helps reduce environment differences, simplify delivery, and make builds and tests more reproducible.
 
-This repository combines short explanations with reproducible labs. It is designed for students, junior DevOps engineers, cloud learners, and developers who want a reliable Docker reference.
-
-## Learning path
-
-| Step | Topic | Outcome |
-|---|---|---|
-| 1 | [What is Docker?](docs/01-what-is-docker.md) | Understand the problem Docker solves |
-| 2 | [Images and containers](docs/02-images-and-containers.md) | Understand Docker's core objects |
-| 3 | [Docker Hub and registries](docs/03-docker-hub-and-registries.md) | Learn how images are stored and shared |
-| 4 | [Command reference](cheat-sheets/docker-commands.md) | Use the essential CLI commands safely |
-| 5 | [Hello Docker](labs/01-hello-docker/README.md) | Run and inspect a first container |
-| 6 | [Nginx web server](labs/02-nginx-container/README.md) | Publish a container port |
-| 7 | [Build a custom image](labs/03-custom-image/README.md) | Package a small application |
-
-## Mental model
+## Core mental model
 
 ~~~text
-Dockerfile --docker build--> Image --docker run--> Container
-                                 |
-                                 +--docker push--> Registry
+Source Code + Dockerfile
+          |
+      docker build
+          |
+        Image -------- docker push --------> Registry
+          |
+       docker run
+          |
+       Container
 ~~~
 
-- A **Dockerfile** is the recipe.
-- An **image** is the packaged, read-only template.
-- A **container** is a running or stopped instance of an image.
-- A **registry** stores and distributes images.
-- Docker Hub is a public registry service.
+| Object | Meaning |
+|---|---|
+| Dockerfile | Recipe used to build an image |
+| Image | Immutable application package and template |
+| Container | Running or stopped instance of an image |
+| Registry | Service that stores and distributes images |
+| Volume | Persistent storage managed by Docker |
+| Network | Communication boundary connecting containers |
+| Compose | Definition of a multi-container application |
 
-## Quick start
+See the complete [Docker glossary](docs/00-glossary.md).
+
+## Documentation
+
+| # | Guide | Covers |
+|---|---|---|
+| 00 | [Glossary](docs/00-glossary.md) | Essential Docker terminology |
+| 01 | [What is Docker?](docs/01-what-is-docker.md) | Purpose, architecture, benefits, and containers versus VMs |
+| 02 | [Images and containers](docs/02-images-and-containers.md) | Images, containers, tags, state, `run` versus `start` |
+| 03 | [Docker Hub and registries](docs/03-docker-hub-and-registries.md) | Pulling, tagging, pushing, tags, and digests |
+| 04 | [Dockerfile](docs/04-dockerfile.md) | Build instructions, context, CMD, and ENTRYPOINT |
+| 05 | [Layers and build cache](docs/05-image-layers-and-build-cache.md) | Cache behavior and multi-stage builds |
+| 06 | [Storage and volumes](docs/06-storage-and-volumes.md) | Writable layers, volumes, bind mounts, and tmpfs |
+| 07 | [Docker networking](docs/07-docker-networking.md) | Drivers, DNS, port publishing, and debugging |
+| 08 | [Docker Compose](docs/08-docker-compose.md) | Services, networks, volumes, and health checks |
+| 09 | [Lifecycle and signals](docs/09-container-lifecycle-and-signals.md) | PID 1, exit codes, signals, and restart policies |
+| 10 | [Security best practices](docs/10-security-best-practices.md) | Users, capabilities, secrets, limits, and supply chain |
+| 11 | [Troubleshooting](docs/11-troubleshooting.md) | Evidence-based diagnosis of common failures |
+
+## Command reference
+
+The [Docker command reference](cheat-sheets/docker-commands.md) groups the most useful commands by purpose:
+
+- images and registries
+- container lifecycle
+- build and cache
+- logs, inspection, and debugging
+- volumes and networks
+- Docker Compose
+- cleanup and disk usage
+
+## Practical labs
+
+| Lab | Focus |
+|---|---|
+| [01 — Hello Docker](labs/01-hello-docker/README.md) | First container and lifecycle |
+| [02 — Nginx container](labs/02-nginx-container/README.md) | Detached mode, port publishing, logs, and exec |
+| [03 — Custom image](labs/03-custom-image/README.md) | Dockerfile, build context, tags, and runtime configuration |
+| [04 — Volumes](labs/04-volumes/README.md) | Data surviving container deletion |
+| [05 — Container network](labs/05-container-network/README.md) | User-defined bridge and container DNS |
+| [06 — Docker Compose](labs/06-docker-compose/README.md) | Declarative service configuration and bind mounts |
+
+Each lab includes commands, inspection steps, cleanup, and challenges.
+
+## Complete example project
+
+The [two-tier web application](projects/two-tier-web-app/README.md) combines:
+
+- an Nginx frontend and reverse proxy
+- a custom non-root Python backend image
+- Compose service discovery
+- public and internal networks
+- a health check
+- read-only runtime filesystem
+- runtime environment configuration
+- basic container hardening
+
+Run it:
 
 ~~~bash
-docker --version
-docker run hello-world
-docker run -d --name web -p 8080:80 nginx
+cd projects/two-tier-web-app
+docker compose up -d --build
+docker compose ps
+~~~
+
+Open `http://localhost:8080`, then clean up with:
+
+~~~bash
+docker compose down
+~~~
+
+## Quick command example
+
+~~~bash
+docker pull nginx:1.27-alpine
+docker run -d --name web -p 8080:80 nginx:1.27-alpine
 docker ps
 docker logs web
+docker exec -it web sh
 docker stop web
 docker rm web
 ~~~
 
-Open `http://localhost:8080` after starting the Nginx container.
+## Important distinctions
 
-## Repository roadmap
+- `docker run` creates and starts a **new** container.
+- `docker start` starts an **existing** stopped container.
+- `EXPOSE` documents a port; `-p` publishes it.
+- Images are immutable templates; container writable layers are temporary.
+- A volume can survive container deletion.
+- Inside a container, `localhost` refers to that container.
+- Docker Hub stores images; Docker Engine runs containers.
+- Containers share a kernel and are not simply small virtual machines.
+- Docker Compose and Kubernetes solve different levels of orchestration.
 
-The next stages will add:
+## Knowledge check
 
-- Dockerfiles in depth
-- image layers, cache, tags, and multi-stage builds
-- volumes and persistent data
-- bridge networks and container DNS
-- Docker Compose
-- health checks and resource limits
-- security and production best practices
-- troubleshooting scenarios
-- a complete containerized application
-- quizzes and interview questions
+Use the [20-question fundamentals quiz](quizzes/fundamentals.md), then compare with the [answer key](quizzes/answers.md).
 
-## How to study
+## Repository structure
 
-1. Read one document.
-2. Predict what each command will do.
-3. Run the related lab.
-4. Inspect the container instead of stopping at “it works.”
-5. Remove the resources and repeat without copying.
-
-## Requirements
-
-- Docker Desktop on Windows/macOS, or Docker Engine on Linux
-- a terminal
-- Git
-- a text editor
-
-Verify the installation:
-
-~~~bash
-docker version
-docker info
+~~~text
+.
+├── cheat-sheets/
+├── docs/
+├── labs/
+│   ├── 01-hello-docker/
+│   ├── 02-nginx-container/
+│   ├── 03-custom-image/
+│   ├── 04-volumes/
+│   ├── 05-container-network/
+│   └── 06-docker-compose/
+├── projects/
+│   └── two-tier-web-app/
+├── quizzes/
+├── CONTRIBUTING.md
+├── LICENSE
+└── references.md
 ~~~
 
-## Important note
+## Safety notes
 
-Containers are not lightweight virtual machines. They are isolated processes that share the host kernel. Docker packages the application and its dependencies while the host operating system still provides the kernel.
+Commands such as `docker system prune`, `docker volume prune`, and `docker compose down -v` can delete resources or persistent data. Inspect the target before confirming destructive cleanup.
+
+Never place real credentials in Dockerfiles, images, Compose files, or public repositories.
+
+## References and contributions
+
+Technical references are listed in [references.md](references.md). Contribution guidelines are available in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-This repository is intended for learning and portfolio use.
+Released under the [MIT License](LICENSE).
