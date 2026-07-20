@@ -1,0 +1,52 @@
+name: Docker Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "labs/03-custom-image/**"
+      - ".github/workflows/docker-smoke-test.yml"
+  pull_request:
+    paths:
+      - "labs/03-custom-image/**"
+      - ".github/workflows/docker-smoke-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get repository files
+        uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        run: docker build -t docker-learning-ci labs/03-custom-image
+
+      - name: Run the container
+        run: |
+          docker run -d             --name docker-learning-test             -p 8000:8000             -e APP_MESSAGE="CI test passed"             docker-learning-ci
+
+      - name: Test the running application
+        run: |
+          for attempt in {1..10}; do
+            if curl --fail --silent http://localhost:8000 | grep --quiet "CI test passed"; then
+              echo "Docker image built successfully and the container answered correctly."
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "The container did not return the expected response."
+          exit 1
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker logs docker-learning-test
+
+      - name: Remove test container
+        if: always()
+        run: docker rm --force docker-learning-test
